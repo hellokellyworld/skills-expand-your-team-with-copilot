@@ -569,6 +569,17 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-container">
+        <button class="share-button" aria-label="Share activity" data-activity="${name}">
+          🔗 Share
+        </button>
+        <div class="share-dropdown hidden">
+          <a class="share-option share-twitter" href="#" target="_blank" rel="noopener noreferrer">𝕏 X (Twitter)</a>
+          <a class="share-option share-facebook" href="#" target="_blank" rel="noopener noreferrer">📘 Facebook</a>
+          <a class="share-option share-whatsapp" href="#" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a>
+          <button class="share-option share-copy">📋 Copy Link</button>
+        </div>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +597,40 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add share button functionality
+    const shareButton = activityCard.querySelector(".share-button");
+    const shareDropdown = activityCard.querySelector(".share-dropdown");
+    shareButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      // Close any other open dropdowns
+      document.querySelectorAll(".share-dropdown").forEach((d) => {
+        if (d !== shareDropdown) d.classList.add("hidden");
+      });
+      shareDropdown.classList.toggle("hidden");
+      shareButton.setAttribute("aria-expanded", !shareDropdown.classList.contains("hidden"));
+    });
+
+    // Set up share links
+    const shareUrl = `${window.location.origin}${window.location.pathname}?activity=${encodeURIComponent(name)}`;
+    const shareText = `Check out this activity: ${name} at Mergington High School!`;
+
+    activityCard.querySelector(".share-twitter").href =
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    activityCard.querySelector(".share-facebook").href =
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    activityCard.querySelector(".share-whatsapp").href =
+      `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
+
+    activityCard.querySelector(".share-copy").addEventListener("click", (event) => {
+      event.stopPropagation();
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showMessage("Link copied to clipboard!", "success");
+        shareDropdown.classList.add("hidden");
+      }).catch(() => {
+        showMessage("Failed to copy link.", "error");
+      });
+    });
 
     activitiesList.appendChild(activityCard);
   }
@@ -853,6 +898,13 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage("Failed to sign up. Please try again.", "error");
       console.error("Error signing up:", error);
     }
+  });
+
+  // Close share dropdowns when clicking outside
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".share-dropdown").forEach((d) => {
+      d.classList.add("hidden");
+    });
   });
 
   // Expose filter functions to window for future UI control
